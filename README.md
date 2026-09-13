@@ -1,5 +1,11 @@
 # Mini Desafio Semana 7 — Análise de Vendas do Setor Varejista
 
+![Python](https://img.shields.io/badge/Python-3.14-blue)
+![pandas](https://img.shields.io/badge/pandas-latest-150458)
+![matplotlib](https://img.shields.io/badge/matplotlib-latest-11557c)
+![seaborn](https://img.shields.io/badge/seaborn-latest-4c72b0)
+![License](https://img.shields.io/badge/License-MIT-yellow)
+
 Análise exploratória de dados de vendas de uma rede de supermercados, com foco em sazonalidade, comportamento de compra e perfil do cliente.
 
 **Curso:** SCTEC — Etapa Profissionalizar
@@ -129,6 +135,26 @@ Os resultados serão salvos em `data/output/` (gráficos + log) e `data/processe
 - **Homens (M):** Presunto Cozido, Banana, Refrigerante, Preservativo, Bife de Coxão Mole
 
 ---
+
+### 📸 Visualizações
+
+**Vendas por mês (sazonalidade):**
+![Vendas por mês](data/output/grafico_sazonalidade.png)
+
+**Heatmap de sazonalidade (mês × ano):**
+![Heatmap](data/output/grafico_heatmap_sazonalidade.png)
+
+**Top 10 produtos mais vendidos:**
+![Top produtos](data/output/grafico_top_produtos.png)
+
+**Vendas por categoria:**
+![Categorias](data/output/grafico_categorias.png)
+
+**Distribuição por gênero:**
+![Gênero](data/output/grafico_genero.png)
+
+**Vendas por segmento de cliente:**
+![Segmento](data/output/grafico_segmento.png)
 
 ## 📈 Gráficos gerados
 
