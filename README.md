@@ -28,11 +28,55 @@ O pipeline inclui:
 
 ---
 
+## 🧠 Reflexão teórica: ETL e qualidade de dados
+
+### O que é ETL?
+
+**ETL** (Extract, Transform, Load) é o processo fundamental em análise de dados:
+
+- **Extract (Extrair):** obter dados de fontes diversas (CSV, banco, API)
+- **Transform (Transformar):** limpar, padronizar, enriquecer e validar
+- **Load (Carregar):** salvar em destino final (banco, dashboard, arquivo)
+
+Neste projeto, o ETL foi aplicado assim:
+
+| Etapa | O que foi feito |
+|-------|-----------------|
+| Extract | Leitura do `varejo.csv` com `pd.read_csv()` |
+| Transform | Tratamento de `#N/D`, conversão de datas, agrupamento de duplicatas |
+| Load | Salvamento em `data/processed/varejo_final.csv` |
+
+### Por que qualidade de dados importa?
+
+Dados brutos **raramente** estão prontos para análise. Problemas comuns:
+
+- **Valores nulos (NaN)** — quebram cálculos e distorcem métricas
+- **Marcadores textuais** (`#N/D`, `N/A`) — não são reconhecidos como nulos pelo pandas
+- **Tipos incorretos** (data como texto) — impedem análise temporal
+- **Duplicatas** — inflam contagens
+
+Sem tratamento, **decisões baseadas nesses dados podem estar erradas**.
+
+### Decisões tomadas neste projeto
+
+- **Categorias vazias** → preenchidas com `"Sem Categoria"` para preservar os registros
+- **Duplicatas** → **agrupadas** em vez de removidas, porque cada linha repetida representa **um item a mais na mesma compra** (não erro do sistema). Isso preserva o volume real de vendas em uma nova coluna `QUANTITY`.
+- **Datas inválidas** → validadas e tratadas com `pd.to_datetime()`.
+
+### Conclusão
+
+Um pipeline ETL bem documentado garante **reprodutibilidade**, **transparência** e **confiabilidade** nas análises.
+
+---
+
 ## 📁 Estrutura do projeto
 
 ```
 Miniprojeto_MarielaCantero_Analise_de_Dados_T6
+├── README.md
 ├── README_MarielaCantero_Analise_de_Dados_T6.md
+├── DOCUMENTACAO.md 
+├── LICENSE
 ├── requirements.txt
 ├── .gitignore
 ├── .gitattributes
@@ -110,7 +154,7 @@ Os resultados serão salvos em `data/output/` (gráficos + log) e `data/processe
 |-------|-----------|
 | 1. Carregamento | Leitura do CSV original (830.000 registros) |
 | 2. Exploração | Análise da estrutura e amostra dos dados |
-| 3. Limpeza | Remoção de colunas vazias e valores `#N/D` |
+| 3. Limpeza | Remoção de colunas vazias e preenchimento de `#N/D` com "Sem Categoria" |
 | 4. Datas | Conversão e validação de datas |
 | 5. Duplicatas | Agrupamento em coluna `QUANTITY` |
 | 6. Análise | Sazonalidade, produtos, categorias, clientes |
@@ -122,13 +166,14 @@ Os resultados serão salvos em `data/output/` (gráficos + log) e `data/processe
 ## 📊 Principais Insights
 
 1. **Produto mais vendido:** Presunto Cozido (14.381 unidades)
-2. **Categoria mais vendida:** Alimentos (52,6% das vendas)
-3. **Mês com mais vendas:** Janeiro (83.587 unidades)
-4. **Ano com mais vendas:** 2021 (244.172 unidades)
+2. **Categoria mais vendida:** Alimentos (52,4% das vendas)
+3. **Mês com mais vendas:** Janeiro (83.963 unidades)
+4. **Ano com mais vendas:** 2021 (245.259 unidades)
 5. **Gênero com mais compras:** Feminino (52,1% das vendas)
 6. **Segmento principal:** B (63,9% das vendas)
-7. **Média de itens por compra:** 44,74 itens
+7. **Média de itens por compra:** 44,94 itens
 8. **Top produto está distribuído** entre 1.000 clientes únicos (não concentrado)
+9. **Perfil familiar:** 52,5% dos clientes não têm filhos; média de 1,15 filhos por cliente
 
 ### 🛍️ Preferências por gênero
 
@@ -176,17 +221,17 @@ Os resultados serão salvos em `data/output/` (gráficos + log) e `data/processe
 
 Todos os valores `#N/D` (3.650 registros, 0,44%) pertenciam a um único produto (`PR_ID = 107`), que não tinha nome nem categoria registrados.
 
-- **Decisão:** remover esses registros (impacto mínimo, produto sem informação útil).
+- **Decisão:** preencher com `"Sem Categoria"` para preservar os registros.
 - **Recomendação:** completar o cadastro do produto 107 na base de origem.
 
 ### 📅 Cobertura por ano
 
 | Ano | Registros |
 |-----|-----------|
-| 2019 | 175.325 (24,0%) |
-| 2020 | 191.978 (26,3%) |
-| 2021 | 215.850 (29,6%) |
-| 2022 | 147.066 (20,1%) |
+| 2019 | 176.103 (24,0%) |
+| 2020 | 192.804 (26,3%) |
+| 2021 | 216.813 (29,6%) |
+| 2022 | 147.727 (20,1%) |
 
 2022 tem menos registros que os outros anos — vale investigar se é uma lacuna real ou apenas dado incompleto.
 
@@ -211,6 +256,12 @@ Todos os valores `#N/D` (3.650 registros, 0,44%) pertenciam a um único produto 
 2. Validar com a fonte se as duplicatas são realmente quantidade de produtos
 3. Investigar a lacuna de dados em 2022
 4. Completar o cadastro do produto 107 no sistema de origem
+
+---
+
+## 📄 Documentação completa
+
+Para análise detalhada, insights completos e metodologia, consulte [DOCUMENTACAO.md](DOCUMENTACAO.md).
 
 ---
 

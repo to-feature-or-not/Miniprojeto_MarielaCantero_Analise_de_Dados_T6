@@ -11,7 +11,7 @@ Data: 2026-09-10
 Curso: SCTEC — Etapa Profissionalizar
 
 Uso:
-    python mini_projeto_M1_S7.py
+    python Miniprojeto_MarielaCantero_Analise_de_Dados_T6.py
 
 Dependências:
     pip install -r requirements.txt
@@ -2188,6 +2188,53 @@ def analyze_purchase_size(
         "min_items": min_items,
     }
 
+def analyze_children(
+    df: pd.DataFrame,
+    children_column: str = "CL_FHL",
+) -> dict:
+    """Analyze children count statistics."""
+    print("\n👨‍👩‍👧  Analyzing number of children (CL_FHL)...")
+
+    if children_column not in df.columns:
+        print(f"   ⚠️  Column '{children_column}' not found. Skipping.")
+        return {}
+
+    col = df[children_column]
+
+    print(f"\n   • Statistics:")
+    print(f"      - Mean:     {col.mean():.2f}")
+    print(f"      - Median:   {col.median():.0f}")
+    print(f"      - Mode:     {col.mode()[0]}")
+    print(f"      - Std:      {col.std():.2f}")
+    print(f"      - Max:      {col.max()}")
+    print(f"      - Min:      {col.min()}")
+    print(f"      - Count:    {col.count():,}")
+
+    print(f"\n   • Quartiles:")
+    print(f"      - 25%: {col.quantile(0.25):.0f}")
+    print(f"      - 50%: {col.quantile(0.50):.0f}")
+    print(f"      - 75%: {col.quantile(0.75):.0f}")
+
+    print(f"\n   • Distribution:")
+    dist = col.value_counts().sort_index()
+    for value, count in dist.items():
+        pct = count / len(df) * 100
+        print(f"      - {value} children: {count:,} ({pct:.1f}%)")
+
+    print("\n✅ Analysis complete")
+
+    return {
+        "mean": col.mean(),
+        "median": col.median(),
+        "mode": col.mode()[0],
+        "std": col.std(),
+        "max": col.max(),
+        "min": col.min(),
+        "count": col.count(),
+        "q1": col.quantile(0.25),
+        "q2": col.quantile(0.50),
+        "q3": col.quantile(0.75),
+    }
 
 # ==========================================
 # ENTRY POINT
@@ -2236,14 +2283,15 @@ def main() -> None:
     product_analysis = analyze_missing_by_product(df, missing_markers=markers_found)
 
     # 7. Decide strategy and handle missing
-    strategy = decide_missing_strategy(investigation, product_analysis)
-    df = handle_missing_category(df, strategy, missing_markers=markers_found)
+    # For this challenge, always fill with "Sem Categoria" (as required)
+    strategy = decide_missing_strategy(investigation, product_analysis, prefer_fill=True)
+    df = handle_missing_category(df, strategy, missing_markers=markers_found, fallback_value="Sem Categoria")
 
     # 8. Handle remaining NaN values 
     df = handle_nan_values(df, strategy="auto", threshold=5.0)
 
     # 9. Handle remaining text markers 
-    df = handle_text_markers(df, strategy="replace",markers=markers_found,fallback_value="UNKNOWN")
+    df = handle_text_markers(df, strategy="replace", markers=markers_found, fallback_value="Sem Categoria")
 
     # 10. Validate clean data
     validate_clean_data(df, raise_on_failure=True)
@@ -2290,7 +2338,7 @@ def main() -> None:
     # 19. Yearly sales
     yearly = analyze_sales_by_year(df)
 
-    # 20. Data coverage by year          ← ADICIONA AQUI
+    # 20. Data coverage by year         
     coverage = analyze_records_by_year(df)
 
     # 21. Top products
@@ -2312,8 +2360,11 @@ def main() -> None:
     top_product_name = top_products["top_products"].index[0]
     concentration = analyze_product_concentration(df, top_product_name)
 
-    # 28. Purchase size         
+    # 27. Purchase size
     purchase_size = analyze_purchase_size(df)
+
+    # 28. Children analysis
+    children = analyze_children(df)
 
     # ==========================================
     # PLOTTING
@@ -2399,7 +2450,7 @@ def main() -> None:
     =========================
     • The '#N/D' missing values were ALL from a single product (PR_ID = 107)
     • This product had no name and no category registered
-    • It was removed (only 0.44% of total records)
+    • It was filled with 'Sem Categoria' (0.44% of total records)
     ⚠️  RECOMMENDATION: Complete the registration of product 107 
     in the source database (needs name and category).
 
