@@ -25,7 +25,7 @@ O pipeline inclui:
 ## 📁 Estrutura do projeto
 
 ```
-mini_desafio_semana7_SCTEC/
+sctec-mini-projeto-m1-s7/
 ├── README.md
 ├── requirements.txt
 ├── .gitignore
