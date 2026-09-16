@@ -61,6 +61,7 @@ backups/
 # (mantidos no repositório para entrega)
 # data/processed/
 # data/output/
+#data/output/run_*.log   
 
 # ==========================================
 # DADOS ORIGINAIS

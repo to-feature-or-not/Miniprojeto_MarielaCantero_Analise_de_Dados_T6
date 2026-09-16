@@ -1157,7 +1157,7 @@ def create_quantity_column(
     if key_columns is None:
         key_columns = [
             "DATA", "CO_ID", "CL_ID", "CL_GENERO", "CL_EC", "CL_FHL",
-            "CL_SEG", "PR_ID", "PR_CAT", "PR_NOME","YEAR", "MONTH",
+            "CL_SEG", "PR_ID", "PR_CAT", "PR_NOME","YEAR", "MONTH", "WEEKDAY"
         ]
 
     # Keep only columns that exist
@@ -1568,7 +1568,7 @@ def plot_sales_by_month(
 
     plt.tight_layout()
     output_dir.mkdir(parents=True, exist_ok=True)
-    plt.savefig(output_dir / filename, dpi=150, bbox_inches="tight")
+    plt.savefig(output_dir / filename, dpi=200, bbox_inches="tight")
     plt.close()
 
     print(f"   • Path: {(output_dir / filename).relative_to(BASE_DIR)}")
@@ -1632,7 +1632,7 @@ def plot_top_products(
 
     plt.tight_layout()
     output_dir.mkdir(parents=True, exist_ok=True)
-    plt.savefig(output_dir / filename, dpi=150, bbox_inches="tight")
+    plt.savefig(output_dir / filename, dpi=200, bbox_inches="tight")
     plt.close()
 
     print(f"   • Path: {(output_dir / filename).relative_to(BASE_DIR)}")
@@ -1696,7 +1696,7 @@ def plot_top_categories(
 
     plt.tight_layout()
     output_dir.mkdir(parents=True, exist_ok=True)
-    plt.savefig(output_dir / filename, dpi=150, bbox_inches="tight")
+    plt.savefig(output_dir / filename, dpi=200, bbox_inches="tight")
     plt.close()
 
     print(f"   • Path: {(output_dir / filename).relative_to(BASE_DIR)}")
@@ -1751,7 +1751,7 @@ def plot_sales_by_gender(
 
     plt.tight_layout()
     output_dir.mkdir(parents=True, exist_ok=True)
-    plt.savefig(output_dir / filename, dpi=150, bbox_inches="tight")
+    plt.savefig(output_dir / filename, dpi=200, bbox_inches="tight")
     plt.close()
 
     print(f"   • Path: {(output_dir / filename).relative_to(BASE_DIR)}")
@@ -1811,7 +1811,7 @@ def plot_sales_by_segment(
 
     plt.tight_layout()
     output_dir.mkdir(parents=True, exist_ok=True)
-    plt.savefig(output_dir / filename, dpi=150, bbox_inches="tight")
+    plt.savefig(output_dir / filename, dpi=200, bbox_inches="tight")
     plt.close()
 
     print(f"   • Path: {(output_dir / filename).relative_to(BASE_DIR)}")
@@ -1882,7 +1882,7 @@ def plot_seasonality_heatmap(
 
     plt.tight_layout()
     output_dir.mkdir(parents=True, exist_ok=True)
-    plt.savefig(output_dir / filename, dpi=150, bbox_inches="tight")
+    plt.savefig(output_dir / filename, dpi=200, bbox_inches="tight")
     plt.close()
 
     print(f"   • Path: {(output_dir / filename).relative_to(BASE_DIR)}")
@@ -2236,6 +2236,750 @@ def analyze_children(
         "q3": col.quantile(0.75),
     }
 
+def analyze_sales_by_weekday(
+    df: pd.DataFrame,
+    weekday_column: str = "WEEKDAY",
+    quantity_column: str = "QUANTITY",
+) -> dict:
+    """Analyze sales by day of week."""
+    print("\n📆 Analyzing sales by day of week...")
+
+    if weekday_column not in df.columns:
+        print(f"   ⚠️  Column '{weekday_column}' not found. Skipping.")
+        return {}
+
+    if quantity_column not in df.columns:
+        print(f"   ⚠️  Column '{quantity_column}' not found. Skipping.")
+        return {}
+
+    weekday_names = {
+        0: "Segunda", 1: "Terça", 2: "Quarta", 3: "Quinta",
+        4: "Sexta", 5: "Sábado", 6: "Domingo",
+    }
+
+    by_weekday = (
+        df.groupby(weekday_column)[quantity_column]
+        .sum()
+        .reindex(range(7), fill_value=0)
+    )
+
+    total = by_weekday.sum()
+    best_day = by_weekday.idxmax()
+    worst_day = by_weekday.idxmin()
+
+    print(f"\n   • Sales by weekday:")
+    for day, qty in by_weekday.items():
+        name = weekday_names.get(day, str(day))
+        pct = qty / total * 100 if total > 0 else 0
+        print(f"      - {name}: {qty:,} ({pct:.1f}%)")
+
+    print(f"\n   • 🏆 Best day: {weekday_names[best_day]} ({by_weekday[best_day]:,})")
+    print(f"   • 📉 Worst day: {weekday_names[worst_day]} ({by_weekday[worst_day]:,})")
+    print(f"   • Total: {total:,}")
+
+    print("\n✅ Analysis complete")
+
+    return {
+        "by_weekday": by_weekday,
+        "total": total,
+        "best_day": best_day,
+        "best_day_name": weekday_names[best_day],
+        "best_day_value": by_weekday[best_day],
+        "worst_day": worst_day,
+        "worst_day_name": weekday_names[worst_day],
+        "worst_day_value": by_weekday[worst_day],
+    }
+
+def plot_sales_by_weekday(
+    df: pd.DataFrame,
+    weekday_column: str = "WEEKDAY",
+    quantity_column: str = "QUANTITY",
+    output_dir: Path = OUTPUT_DIR,
+    filename: str = "grafico_dia_semana.png",
+) -> None:
+    """Plot sales by day of week as a bar chart."""
+    print(f"\n📊 Plotting sales by weekday...")
+
+    if weekday_column not in df.columns:
+        print(f"   ⚠️  Column '{weekday_column}' not found. Skipping.")
+        return
+
+    if quantity_column not in df.columns:
+        print(f"   ⚠️  Column '{quantity_column}' not found. Skipping.")
+        return
+
+    weekday_names = {
+        0: "Seg", 1: "Ter", 2: "Qua", 3: "Qui",
+        4: "Sex", 5: "Sáb", 6: "Dom",
+    }
+
+    by_weekday = (
+        df.groupby(weekday_column)[quantity_column]
+        .sum()
+        .reindex(range(7), fill_value=0)
+    )
+
+    fig, ax = plt.subplots(figsize=(10, 6))
+
+    colors = ["skyblue"] * 7
+    best_idx = int(by_weekday.idxmax())
+    worst_idx = int(by_weekday.idxmin())
+    colors[best_idx] = "crimson"
+    colors[worst_idx] = "orange"
+
+    bars = ax.bar(
+        [weekday_names[d] for d in by_weekday.index],
+        by_weekday.values,
+        color=colors,
+        edgecolor="navy",
+    )
+
+    ax.set_xlabel("Dia da Semana", fontsize=12)
+    ax.set_ylabel("Quantidade Vendida", fontsize=12)
+    ax.set_title("Vendas por Dia da Semana", fontsize=14, fontweight="bold")
+    ax.grid(axis="y", alpha=0.3)
+
+    total = by_weekday.sum()
+    for bar in bars:
+        height = bar.get_height()
+        pct = height / total * 100 if total > 0 else 0
+        ax.text(
+            bar.get_x() + bar.get_width() / 2,
+            height,
+            f"{int(height):,}\n({pct:.1f}%)",
+            ha="center",
+            va="bottom",
+            fontsize=9,
+        )
+
+    plt.tight_layout()
+    output_dir.mkdir(parents=True, exist_ok=True)
+    plt.savefig(output_dir / filename, dpi=200, bbox_inches="tight")
+    plt.close()
+
+    print(f"   • Path: {(output_dir / filename).relative_to(BASE_DIR)}")
+    print(f"   ✅ Chart saved")
+
+def analyze_customer_pareto(
+    df: pd.DataFrame,
+    customer_column: str = "CL_ID",
+    quantity_column: str = "QUANTITY",
+    pareto_threshold: float = 80.0,
+) -> dict:
+    """Analyze customer concentration using the Pareto principle.
+
+    The Pareto principle (80/20 rule) states that roughly 80% of
+    effects come from 20% of causes. In retail, this often means a
+    small share of customers drives most of the sales volume.
+
+    This function calculates what percentage of customers account
+    for `pareto_threshold`% of total quantity sold."""
+    print(f"\n📊 Analyzing customer Pareto ({pareto_threshold:.0f}/{100-pareto_threshold:.0f})...")
+
+    if customer_column not in df.columns or quantity_column not in df.columns:
+        print("   ⚠️  Required columns not found. Skipping.")
+        return {}
+
+    by_customer = (
+        df.groupby(customer_column)[quantity_column]
+        .sum()
+        .sort_values(ascending=False)
+    )
+
+    total_customers = len(by_customer)
+    total_quantity = by_customer.sum()
+
+    if total_quantity == 0:
+        print("   ⚠️  No quantity to analyze.")
+        return {}
+
+    cumulative_qty = by_customer.cumsum()
+    cumulative_pct = cumulative_qty / total_quantity * 100
+
+    customers_to_threshold = (cumulative_pct <= pareto_threshold).sum() + 1
+    customers_pct = customers_to_threshold / total_customers * 100
+
+    print(f"\n   • Total customers: {total_customers:,}")
+    print(f"   • Total quantity: {total_quantity:,}")
+    print(f"\n   • {customers_to_threshold:,} customers ({customers_pct:.1f}%)")
+    print(f"     account for {pareto_threshold:.0f}% of sales")
+
+    print(f"\n   • Interpretation:")
+    if customers_pct < 30:
+        print(f"     ⚠️  Highly concentrated: few customers drive most sales")
+        concentration = "high"
+    elif customers_pct < 50:
+        print(f"     🟡 Moderately concentrated")
+        concentration = "moderate"
+    else:
+        print(f"     ✅ Well distributed across customers")
+        concentration = "low"
+
+    print(f"\n   • Top 10 customers:")
+    top_10 = by_customer.head(10)
+    for i, (cust, qty) in enumerate(top_10.items(), 1):
+        pct = qty / total_quantity * 100
+        print(f"      {i:2d}. Customer {cust}: {qty:,} ({pct:.2f}%)")
+
+    print("\n✅ Analysis complete")
+
+    return {
+        "by_customer": by_customer,
+        "cumulative_pct": cumulative_pct,
+        "total_customers": total_customers,
+        "total_quantity": total_quantity,
+        "customers_to_threshold": customers_to_threshold,
+        "customers_pct": customers_pct,
+        "pareto_threshold": pareto_threshold,
+        "concentration": concentration,
+        "top_10": top_10,
+    }
+
+def plot_customer_pareto(
+    df: pd.DataFrame,
+    customer_column: str = "CL_ID",
+    quantity_column: str = "QUANTITY",
+    pareto_threshold: float = 80.0,
+    output_dir: Path = OUTPUT_DIR,
+    filename: str = "grafico_pareto_clientes.png",
+) -> None:
+    """Plot customer Pareto curve."""
+    print(f"\n📊 Plotting customer Pareto curve...")
+
+    if customer_column not in df.columns or quantity_column not in df.columns:
+        print("   ⚠️  Required columns not found. Skipping.")
+        return
+
+    by_customer = (
+        df.groupby(customer_column)[quantity_column]
+        .sum()
+        .sort_values(ascending=False)
+    )
+
+    total_quantity = by_customer.sum()
+    if total_quantity == 0:
+        print("   ⚠️  No quantity to plot.")
+        return
+
+    cum_qty = by_customer.cumsum()
+    cum_pct = cum_qty / total_quantity * 100
+    x_pct = [(i + 1) / len(by_customer) * 100 for i in range(len(by_customer))]
+
+    idx_threshold = (cum_pct <= pareto_threshold).sum()
+    x_threshold = x_pct[idx_threshold] if idx_threshold < len(x_pct) else x_pct[-1]
+    y_threshold = cum_pct.iloc[idx_threshold] if idx_threshold < len(cum_pct) else cum_pct.iloc[-1]
+
+    fig, ax = plt.subplots(figsize=(10, 6))
+
+    ax.plot(x_pct, cum_pct.values, color="steelblue", linewidth=2)
+
+    ax.axhline(pareto_threshold, color="crimson", linestyle="--", alpha=0.7,
+               label=f"{pareto_threshold:.0f}% das vendas")
+    ax.axvline(x_threshold, color="crimson", linestyle="--", alpha=0.7,
+               label=f"{x_threshold:.1f}% dos clientes")
+
+    ax.scatter([x_threshold], [y_threshold], color="crimson", s=100, zorder=5)
+    ax.annotate(
+        f"{x_threshold:.1f}% dos clientes\n= {pareto_threshold:.0f}% das vendas",
+        xy=(x_threshold, y_threshold),
+        xytext=(x_threshold + 15, y_threshold - 20),
+        fontsize=10,
+        arrowprops=dict(arrowstyle="->", color="crimson"),
+        bbox=dict(boxstyle="round,pad=0.5", facecolor="lightyellow", edgecolor="crimson"),
+    )
+
+    ax.set_xlabel("% dos Clientes (acumulado)", fontsize=12)
+    ax.set_ylabel("% das Vendas (acumulado)", fontsize=12)
+    ax.set_title("Curva de Pareto — Concentração de Clientes", fontsize=14, fontweight="bold")
+    ax.legend(loc="lower right")
+    ax.grid(alpha=0.3)
+    ax.set_xlim(0, 100)
+    ax.set_ylim(0, 105)
+
+    plt.tight_layout()
+    output_dir.mkdir(parents=True, exist_ok=True)
+    plt.savefig(output_dir / filename, dpi=200, bbox_inches="tight")
+    plt.close()
+
+    print(f"   • Path: {(output_dir / filename).relative_to(BASE_DIR)}")
+    print(f"   ✅ Chart saved")
+
+def analyze_avg_ticket_by_group(
+    df: pd.DataFrame,
+    group_column: str,
+    quantity_column: str = "QUANTITY",
+    purchase_column: str = "CO_ID",
+) -> dict:
+    """Analyze average ticket (items per purchase) by a group."""
+    print(f"\n🎟️  Analyzing average ticket by '{group_column}'...")
+
+    if group_column not in df.columns:
+        print(f"   ⚠️  Column '{group_column}' not found. Skipping.")
+        return {}
+
+    if quantity_column not in df.columns or purchase_column not in df.columns:
+        print(f"   ⚠️  Required columns not found. Skipping.")
+        return {}
+
+    items_per_purchase = (
+        df.groupby([group_column, purchase_column])[quantity_column]
+        .sum()
+        .reset_index()
+    )
+
+    results = {}
+
+    print(f"\n   • Average ticket by {group_column}:")
+    for group in sorted(items_per_purchase[group_column].unique()):
+        group_df = items_per_purchase[items_per_purchase[group_column] == group]
+        ticket = group_df[quantity_column]
+
+        total_qty = ticket.sum()
+        n_purchases = len(ticket)
+        avg_ticket = ticket.mean()
+        median_ticket = ticket.median()
+        max_ticket = ticket.max()
+
+        results[group] = {
+            "total_quantity": total_qty,
+            "n_purchases": n_purchases,
+            "avg_ticket": avg_ticket,
+            "median_ticket": median_ticket,
+            "max_ticket": max_ticket,
+        }
+
+        print(f"\n      - {group}:")
+        print(f"          • Total quantity: {total_qty:,}")
+        print(f"          • Purchases: {n_purchases:,}")
+        print(f"          • Average ticket: {avg_ticket:.2f}")
+        print(f"          • Median ticket: {median_ticket:.0f}")
+        print(f"          • Max ticket: {max_ticket:,}")
+
+    if results:
+        best_group = max(results, key=lambda g: results[g]["avg_ticket"])
+        print(f"\n   • 🏆 Highest average ticket: {best_group} "
+              f"({results[best_group]['avg_ticket']:.2f})")
+
+    print("\n✅ Analysis complete")
+
+    return {
+        "by_group": results,
+        "group_column": group_column,
+    }
+
+def analyze_category_by_segment(
+    df: pd.DataFrame,
+    category_column: str = "PR_CAT",
+    segment_column: str = "CL_SEG",
+    quantity_column: str = "QUANTITY",
+) -> dict:
+    """Analyze quantity of each category by customer segment (cross-tab)."""
+    print(f"\n📊 Analyzing '{category_column}' × '{segment_column}'...")
+
+    required = [category_column, segment_column, quantity_column]
+    if not all(c in df.columns for c in required):
+        print("   ⚠️  Required columns not found. Skipping.")
+        return {}
+
+    pivot = df.pivot_table(
+        values=quantity_column,
+        index=category_column,
+        columns=segment_column,
+        aggfunc="sum",
+        fill_value=0,
+    )
+
+    # Add total row/column for reading
+    pivot["TOTAL"] = pivot.sum(axis=1)
+    pivot = pivot.sort_values("TOTAL", ascending=False)
+
+    print(f"\n   • Quantity by category × segment:")
+    print(textwrap.indent(pivot.to_string(), "      "))
+
+    # Segment with highest overall demand
+    segment_totals = pivot.drop(columns="TOTAL").sum()
+    top_segment = segment_totals.idxmax()
+
+    print(f"\n   • 🏆 Top segment overall: {top_segment} "
+          f"({segment_totals[top_segment]:,})")
+
+    print("\n✅ Analysis complete")
+
+    return {
+        "pivot": pivot,
+        "segment_totals": segment_totals,
+        "top_segment": top_segment,
+    }
+
+def plot_heatmap_category_segment(
+    df: pd.DataFrame,
+    category_column: str = "PR_CAT",
+    segment_column: str = "CL_SEG",
+    quantity_column: str = "QUANTITY",
+    output_dir: Path = OUTPUT_DIR,
+    filename: str = "grafico_heatmap_categoria_segmento.png",
+) -> None:
+    """Plot heatmap crossing category and segment."""
+    print(f"\n📊 Plotting heatmap '{category_column}' × '{segment_column}'...")
+
+    required = [category_column, segment_column, quantity_column]
+    if not all(c in df.columns for c in required):
+        print("   ⚠️  Required columns not found. Skipping.")
+        return
+
+    pivot = df.pivot_table(
+        values=quantity_column,
+        index=category_column,
+        columns=segment_column,
+        aggfunc="sum",
+        fill_value=0,
+    )
+    pivot = pivot.sort_values(by=pivot.columns[0], ascending=False)
+
+    fig, ax = plt.subplots(figsize=(10, max(6, len(pivot) * 0.5)))
+
+    sns.heatmap(
+        pivot,
+        annot=True,
+        fmt=".0f",
+        cmap="YlGnBu",
+        linewidths=0.5,
+        cbar_kws={"label": "Quantidade Vendida"},
+        ax=ax,
+    )
+
+    ax.set_title(
+        f"Vendas por Categoria × Segmento",
+        fontsize=14,
+        fontweight="bold",
+        pad=20,
+    )
+    ax.set_xlabel("Segmento", fontsize=12)
+    ax.set_ylabel("Categoria", fontsize=12)
+
+    plt.tight_layout()
+    output_dir.mkdir(parents=True, exist_ok=True)
+    plt.savefig(output_dir / filename, dpi=200, bbox_inches="tight")
+    plt.close()
+
+    print(f"   • Path: {(output_dir / filename).relative_to(BASE_DIR)}")
+    print(f"   ✅ Chart saved")
+
+def plot_sales_by_year(
+    df: pd.DataFrame,
+    year_column: str = "YEAR",
+    quantity_column: str = "QUANTITY",
+    output_dir: Path = OUTPUT_DIR,
+    filename: str = "grafico_ano.png",
+) -> None:
+    """Plot sales by year as a bar chart."""
+    print(f"\n📊 Plotting sales by year...")
+
+    if year_column not in df.columns or quantity_column not in df.columns:
+        print("   ⚠️  Required columns not found. Skipping.")
+        return
+
+    by_year = df.groupby(year_column)[quantity_column].sum().sort_index()
+
+    fig, ax = plt.subplots(figsize=(10, 6))
+
+    bars = ax.bar(
+        [str(y) for y in by_year.index],
+        by_year.values,
+        color="mediumpurple",
+        edgecolor="navy",
+    )
+
+    ax.set_xlabel("Ano", fontsize=12)
+    ax.set_ylabel("Quantidade Vendida", fontsize=12)
+    ax.set_title("Vendas por Ano", fontsize=14, fontweight="bold")
+    ax.grid(axis="y", alpha=0.3)
+
+    total = by_year.sum()
+    for bar in bars:
+        height = bar.get_height()
+        pct = height / total * 100 if total > 0 else 0
+        ax.text(
+            bar.get_x() + bar.get_width() / 2,
+            height,
+            f"{int(height):,}\n({pct:.1f}%)",
+            ha="center",
+            va="bottom",
+            fontsize=10,
+        )
+
+    plt.tight_layout()
+    output_dir.mkdir(parents=True, exist_ok=True)
+    plt.savefig(output_dir / filename, dpi=200, bbox_inches="tight")
+    plt.close()
+
+    print(f"   • Path: {(output_dir / filename).relative_to(BASE_DIR)}")
+    print(f"   ✅ Chart saved")
+
+def plot_purchase_size(
+    df: pd.DataFrame,
+    purchase_column: str = "CO_ID",
+    quantity_column: str = "QUANTITY",
+    output_dir: Path = OUTPUT_DIR,
+    filename: str = "grafico_tamanho_compra.png",
+) -> None:
+    """Plot purchase size distribution as a bar chart."""
+    print(f"\n📊 Plotting purchase size distribution...")
+
+    if purchase_column not in df.columns or quantity_column not in df.columns:
+        print("   ⚠️  Required columns not found. Skipping.")
+        return
+
+    items_per_purchase = df.groupby(purchase_column)[quantity_column].sum()
+
+    ranges = [0, 5, 10, 20, 50, 100, float("inf")]
+    labels = ["1-5", "6-10", "11-20", "21-50", "51-100", "100+"]
+
+    counts = []
+    for i, _ in enumerate(labels):
+        n = len(items_per_purchase[
+            (items_per_purchase > ranges[i]) &
+            (items_per_purchase <= ranges[i + 1])
+        ])
+        counts.append(n)
+
+    total = sum(counts)
+
+    fig, ax = plt.subplots(figsize=(10, 6))
+
+    bars = ax.bar(labels, counts, color="coral", edgecolor="darkred")
+
+    ax.set_xlabel("Itens por Compra", fontsize=12)
+    ax.set_ylabel("Número de Compras", fontsize=12)
+    ax.set_title("Distribuição do Tamanho das Compras", fontsize=14, fontweight="bold")
+    ax.grid(axis="y", alpha=0.3)
+
+    for bar in bars:
+        height = bar.get_height()
+        pct = height / total * 100 if total > 0 else 0
+        ax.text(
+            bar.get_x() + bar.get_width() / 2,
+            height,
+            f"{int(height):,}\n({pct:.1f}%)",
+            ha="center",
+            va="bottom",
+            fontsize=10,
+        )
+
+    plt.tight_layout()
+    output_dir.mkdir(parents=True, exist_ok=True)
+    plt.savefig(output_dir / filename, dpi=200, bbox_inches="tight")
+    plt.close()
+
+    print(f"   • Path: {(output_dir / filename).relative_to(BASE_DIR)}")
+    print(f"   ✅ Chart saved")
+
+def plot_children_distribution(
+    df: pd.DataFrame,
+    children_column: str = "CL_FHL",
+    output_dir: Path = OUTPUT_DIR,
+    filename: str = "grafico_filhos.png",
+) -> None:
+    """Plot distribution of children count per record."""
+    print(f"\n📊 Plotting children distribution...")
+
+    required = [children_column]
+    if not all(c in df.columns for c in required):
+        print(f"   ⚠️  Missing columns: {[c for c in required if c not in df.columns]}. Skipping.")
+        return
+
+    dist = df[children_column].value_counts().sort_index()
+    total = dist.sum()
+
+    fig, ax = plt.subplots(figsize=(10, 6))
+
+    bars = ax.bar(
+        [str(v) for v in dist.index],
+        dist.values,
+        color="plum",
+        edgecolor="purple",
+    )
+
+    ax.set_xlabel("Número de Filhos", fontsize=12)
+    ax.set_ylabel("Número de Registros", fontsize=12)
+    ax.set_title("Distribuição do Número de Filhos", fontsize=14, fontweight="bold")
+    ax.grid(axis="y", alpha=0.3)
+
+    for bar in bars:
+        height = bar.get_height()
+        pct = height / total * 100 if total > 0 else 0
+        ax.text(
+            bar.get_x() + bar.get_width() / 2,
+            height,
+            f"{int(height):,}\n({pct:.1f}%)",
+            ha="center",
+            va="bottom",
+            fontsize=10,
+        )
+
+    plt.tight_layout()
+    output_dir.mkdir(parents=True, exist_ok=True)
+    plt.savefig(output_dir / filename, dpi=200, bbox_inches="tight")
+    plt.close()
+
+    print(f"   • Path: {(output_dir / filename).relative_to(BASE_DIR)}")
+    print(f"   ✅ Chart saved")
+
+def analyze_customer_scatter(
+    df: pd.DataFrame,
+    customer_column: str = "CL_ID",
+    purchase_column: str = "CO_ID",
+    quantity_column: str = "QUANTITY",
+) -> dict:
+    """
+    Analyze relationship between purchase frequency and average ticket.
+
+    Each customer is described by:
+    - Frequency: number of unique purchases
+    - Avg ticket: average items per purchase
+
+    Args:
+        df: DataFrame with sales data.
+        customer_column: Name of the customer ID column.
+        purchase_column: Name of the purchase ID column.
+        quantity_column: Name of the quantity column.
+
+    Returns:
+        Dictionary with per-customer dataframe and quadrant stats.
+    """
+    print("\n🔵 Analyzing customer frequency × ticket...")
+
+    required = [customer_column, purchase_column, quantity_column]
+    if not all(c in df.columns for c in required):
+        print("   ⚠️  Required columns not found. Skipping.")
+        return {}
+
+    # Items per purchase, per customer
+    items_per_purchase = (
+        df.groupby([customer_column, purchase_column])[quantity_column]
+        .sum()
+        .reset_index()
+    )
+
+    # Aggregate per customer
+    per_customer = (
+        items_per_purchase
+        .groupby(customer_column)[quantity_column]
+        .agg(frequency="count", total="sum", avg_ticket="mean")
+        .reset_index()
+    )
+
+    # Medians (to draw quadrant lines)
+    median_freq = per_customer["frequency"].median()
+    median_ticket = per_customer["avg_ticket"].median()
+
+    # Quadrants
+    q1 = ((per_customer["frequency"] >= median_freq) &
+          (per_customer["avg_ticket"] >= median_ticket)).sum()  # VIP
+    q2 = ((per_customer["frequency"] >= median_freq) &
+          (per_customer["avg_ticket"] < median_ticket)).sum()   # frequente baixo
+    q3 = ((per_customer["frequency"] < median_freq) &
+          (per_customer["avg_ticket"] >= median_ticket)).sum()  # ocasional alto
+    q4 = ((per_customer["frequency"] < median_freq) &
+          (per_customer["avg_ticket"] < median_ticket)).sum()   # esporádico
+
+    total = len(per_customer)
+
+    print(f"\n   • Customers: {total:,}")
+    print(f"   • Median frequency: {median_freq:.0f} purchases")
+    print(f"   • Median ticket: {median_ticket:.2f} items")
+    print(f"\n   • Quadrants:")
+    print(f"      - VIP (muitas + alto ticket): {q1:,} ({q1/total*100:.1f}%)")
+    print(f"      - Frequente baixo ticket:     {q2:,} ({q2/total*100:.1f}%)")
+    print(f"      - Ocasional alto ticket:      {q3:,} ({q3/total*100:.1f}%)")
+    print(f"      - Esporádico:                 {q4:,} ({q4/total*100:.1f}%)")
+
+    print("\n✅ Analysis complete")
+
+    return {
+        "per_customer": per_customer,
+        "median_freq": median_freq,
+        "median_ticket": median_ticket,
+        "quadrants": {"vip": q1, "freq_low": q2, "occ_high": q3, "sporadic": q4},
+        "total_customers": total,
+    }
+
+def plot_customer_scatter(
+    df: pd.DataFrame,
+    customer_column: str = "CL_ID",
+    purchase_column: str = "CO_ID",
+    quantity_column: str = "QUANTITY",
+    output_dir: Path = OUTPUT_DIR,
+    filename: str = "grafico_scatter_cliente.png",
+) -> None:
+    """Plot customer scatter: frequency vs average ticket."""
+    print(f"\n📊 Plotting customer scatter...")
+
+    analysis = analyze_customer_scatter(df, customer_column, purchase_column, quantity_column)
+    if not analysis:
+        print("   ⚠️  Skipping.")
+        return
+
+    per_customer = analysis["per_customer"]
+    median_freq = analysis["median_freq"]
+    median_ticket = analysis["median_ticket"]
+
+    fig, ax = plt.subplots(figsize=(10, 7))
+
+    ax.scatter(
+        per_customer["frequency"],
+        per_customer["avg_ticket"],
+        alpha=0.6,
+        s=30,
+        color="steelblue",
+        edgecolor="white",
+        linewidth=0.5,
+    )
+
+    # Quadrant lines (medians)
+    ax.axvline(median_freq, color="crimson", linestyle="--", alpha=0.6,
+               label=f"Mediana frequência ({median_freq:.0f})")
+    ax.axhline(median_ticket, color="crimson", linestyle="--", alpha=0.6,
+               label=f"Mediana ticket ({median_ticket:.1f})")
+
+    # Quadrant labels
+    x_max = per_customer["frequency"].max()
+    y_max = per_customer["avg_ticket"].max()
+
+    ax.text(x_max * 0.95, y_max * 0.95, "VIP\n(muitas + alto)",
+            ha="right", va="top", fontsize=10, fontweight="bold",
+            color="darkgreen",
+            bbox=dict(boxstyle="round,pad=0.3", facecolor="lightgreen", alpha=0.6))
+
+    ax.text(x_max * 0.95, y_max * 0.05, "Ocasional\nalto ticket",
+            ha="right", va="bottom", fontsize=10, fontweight="bold",
+            color="darkorange",
+            bbox=dict(boxstyle="round,pad=0.3", facecolor="navajowhite", alpha=0.6))
+
+    ax.text(x_max * 0.05, y_max * 0.95, "Frequente\nbaixo ticket",
+            ha="left", va="top", fontsize=10, fontweight="bold",
+            color="darkblue",
+            bbox=dict(boxstyle="round,pad=0.3", facecolor="lightblue", alpha=0.6))
+
+    ax.text(x_max * 0.05, y_max * 0.05, "Esporádico",
+            ha="left", va="bottom", fontsize=10, fontweight="bold",
+            color="gray",
+            bbox=dict(boxstyle="round,pad=0.3", facecolor="lightgray", alpha=0.6))
+
+    ax.set_xlabel("Frequência (número de compras)", fontsize=12)
+    ax.set_ylabel("Ticket médio (itens por compra)", fontsize=12)
+    ax.set_title("Clientes: Frequência vs Ticket Médio", fontsize=14, fontweight="bold")
+    ax.legend(loc="upper right")
+    ax.grid(alpha=0.3)
+
+    plt.tight_layout()
+    output_dir.mkdir(parents=True, exist_ok=True)
+    plt.savefig(output_dir / filename, dpi=200, bbox_inches="tight")
+    plt.close()
+
+    print(f"   • Path: {(output_dir / filename).relative_to(BASE_DIR)}")
+    print(f"   ✅ Chart saved")
+
 # ==========================================
 # ENTRY POINT
 # ==========================================
@@ -2309,7 +3053,7 @@ def main() -> None:
     df = handle_invalid_dates(df, date_validation)
 
     # 14. Add date parts
-    df = add_date_parts(df)
+    df = add_date_parts(df, parts=["year", "month", "weekday"])
 
     # ==========================================
     # DUPLICATES & QUANTITY
@@ -2366,24 +3110,58 @@ def main() -> None:
     # 28. Children analysis
     children = analyze_children(df)
 
+    # 29. Weekday analysis
+    weekday = analyze_sales_by_weekday(df)
+
+    # 30. Customer Pareto
+    pareto = analyze_customer_pareto(df)
+
+    # 31. Average ticket by segment and gender
+    ticket_seg = analyze_avg_ticket_by_group(df, "CL_SEG")
+    ticket_gen = analyze_avg_ticket_by_group(df, "CL_GENERO")
+
+    # 32. Category × Segment cross-tab
+    cat_seg = analyze_category_by_segment(df)
+
     # ==========================================
     # PLOTTING
     # ==========================================
-    # 29. Monthly seasonality
+    # 33. Monthly seasonality
     plot_sales_by_month(df)
     plot_seasonality_heatmap(df)
 
-    # 30. Top products
+    # 34. Top products
     plot_top_products(df)
 
-    # 31. Top categories
+    # 35. Top categories
     plot_top_categories(df)
 
-    # 32. Sales by gender
+    # 36. Sales by gender
     plot_sales_by_gender(df)
 
-    # 33. Sales by segment
+    # 37. Sales by segment
     plot_sales_by_segment(df)
+
+    # 38. Weekday
+    plot_sales_by_weekday(df)
+
+    # 39. Customer Pareto
+    plot_customer_pareto(df)
+
+    # 40. Category × Segment heatmap
+    plot_heatmap_category_segment(df)
+
+    # 41. Sales by year
+    plot_sales_by_year(df)
+
+    # 42. Purchase size
+    plot_purchase_size(df)
+
+    # 43. Children distribution
+    plot_children_distribution(df)
+
+    # 44. Scatter plot
+    plot_customer_scatter(df)
 
     print("\n🎉 Analysis complete!")
 
@@ -2422,6 +3200,74 @@ def main() -> None:
     purchase_avg = purchase_size["avg_items"]
     purchase_median = purchase_size["median_items"]
     purchase_max = purchase_size["max_items"]
+
+    # Prepare Pareto text (safe if analysis returned empty)
+    if pareto:
+        pareto_txt = (
+            f"• Principle: ~80% of sales come from a minority of customers\n"
+            f"    • In this dataset: {pareto['customers_pct']:.1f}% of customers "
+            f"account for {pareto['pareto_threshold']:.0f}% of sales\n"
+            f"    • Verdict: {pareto['concentration'].upper()}"
+        )
+    else:
+        pareto_txt = (
+            "• Principle: ~80% of sales come from a minority of customers\n"
+            "    • In this dataset: not available\n"
+            "    • Verdict: not available"
+        )
+
+    # ----- Weekday text -----
+    if weekday:
+        weekday_txt = (
+            f"• Best day: {weekday['best_day_name']} ({weekday['best_day_value']:,} items)\n"
+            f"    • Worst day: {weekday['worst_day_name']} ({weekday['worst_day_value']:,} items)\n"
+            f"    • Insight: sales concentrate on specific days, allowing targeted "
+            f"staffing and promotions"
+        )
+    else:
+        weekday_txt = "• not available"
+
+    # ----- Ticket by segment -----
+    if ticket_seg and ticket_seg.get("by_group"):
+        seg_data = ticket_seg["by_group"]
+        best_seg_name = max(seg_data, key=lambda g: seg_data[g]["avg_ticket"])
+        worst_seg_name = min(seg_data, key=lambda g: seg_data[g]["avg_ticket"])
+        best_seg_value = seg_data[best_seg_name]["avg_ticket"]
+        worst_seg_value = seg_data[worst_seg_name]["avg_ticket"]
+
+        ticket_seg_txt = (
+            f"• Highest ticket: {best_seg_name} ({best_seg_value:.2f} items)\n"
+            f"    • Lowest ticket: {worst_seg_name} ({worst_seg_value:.2f} items)\n"
+            f"    • Insight: segments buy different amounts per visit, even when "
+            f"total volume is similar"
+        )
+    else:
+        ticket_seg_txt = "• not available"
+
+    # ----- Ticket by gender -----
+    if ticket_gen and ticket_gen.get("by_group"):
+        gen_data = ticket_gen["by_group"]
+        best_gen_name = max(gen_data, key=lambda g: gen_data[g]["avg_ticket"])
+        worst_gen_name = min(gen_data, key=lambda g: gen_data[g]["avg_ticket"])
+        best_gen_value = gen_data[best_gen_name]["avg_ticket"]
+        worst_gen_value = gen_data[worst_gen_name]["avg_ticket"]
+
+        ticket_gen_txt = (
+            f"• Highest ticket: {best_gen_name} ({best_gen_value:.2f} items)\n"
+            f"    • Lowest ticket: {worst_gen_name} ({worst_gen_value:.2f} items)"
+        )
+    else:
+        ticket_gen_txt = "• not available"
+
+    # ----- Category × Segment -----
+    if cat_seg:
+        cat_seg_txt = (
+            f"• Top segment overall: {cat_seg['top_segment']}\n"
+            f"    • Insight: reveals which segments drive each category, enabling "
+            f"targeted assortment decisions"
+        )
+    else:
+        cat_seg_txt = "• not available"
 
     print(f"""
     🔍 MAIN INSIGHTS:
@@ -2468,6 +3314,35 @@ def main() -> None:
     • Top 5 customers represent {concentration['top_n_pct']:.1f}% of total
     • Verdict: {concentration['concentration'].upper()}
 
+     📊 CUSTOMER PARETO (80/20):
+    =========================
+    {pareto_txt}
+
+    📆 WEEKDAY PATTERN:
+    =========================
+    • Best day: {weekday['best_day_name']} ({weekday['best_day_value']:,} items)
+    • Worst day: {weekday['worst_day_name']} ({weekday['worst_day_value']:,} items)
+    • Insight: sales concentrate on specific days → staffing and
+      promotions can be targeted to those days
+
+    🎟️ TICKET BY SEGMENT:
+    =========================
+    • Highest average ticket: {best_seg_name} ({best_seg_value:.2f} items)
+    • Lowest average ticket: {worst_seg_name} ({worst_seg_value:.2f} items)
+    • Insight: segments differ in how much they buy per visit,
+      even if they buy similar total volume
+
+    🎟️ TICKET BY GENDER:
+    =========================
+    • Highest average ticket: {best_gen_name} ({best_gen_value:.2f} items)
+    • Lowest average ticket: {worst_gen_name} ({worst_gen_value:.2f} items)
+
+    🔀 CATEGORY × SEGMENT:
+    =========================
+    • Top segment overall: {cat_seg['top_segment']}
+    • Insight: reveals which segments drive demand for each category,
+      enabling targeted assortment decisions
+    
     ⚠️  LIMITATIONS:
     =========================
     1. No price column → no revenue analysis
