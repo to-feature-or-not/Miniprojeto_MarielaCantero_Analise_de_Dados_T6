@@ -50,6 +50,9 @@ Thumbs.db
 
 *.bak
 *.tmp
+backup_*.zip
+backups/
+
 
 # ==========================================
 # DADOS GERADOS PELO SCRIPT
