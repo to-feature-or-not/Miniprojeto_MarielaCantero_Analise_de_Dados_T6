@@ -11,7 +11,12 @@ Documentação detalhada do mini-projeto de análise exploratória de dados de v
 ## 🎯 Objetivo
 
 Este documento complementa o [`README.md`](README.md) com os detalhes técnicos da análise:
-etapas do pipeline, insights completos, visualizações, notas sobre os dados e limitações.
+etapas do pipeline, insights completos, agrupamentos utilizados, visualizações, 
+notas sobre os dados e limitações.
+
+> **Nota sobre registros:** o CSV original tem **830.000 linhas** (1 item por linha). 
+> Após agrupar duplicatas, a base final tem **733.447 registros** — a coluna `QUANTITY` 
+> indica quantas unidades idênticas foram agrupadas.
 
 ---
 
@@ -19,13 +24,13 @@ etapas do pipeline, insights completos, visualizações, notas sobre os dados e 
 
 | Etapa | Descrição |
 |-------|-----------|
-| 1. Carregamento | Leitura do CSV original (830.000 registros) |
+| 1. Carregamento | Leitura do CSV original (830.000 registros brutos) |
 | 2. Exploração | Análise da estrutura e amostra dos dados |
 | 3. Limpeza | Remoção de colunas vazias e preenchimento de `#N/D` com "Sem Categoria" |
 | 4. Datas | Conversão e validação de datas |
-| 5. Duplicatas | Agrupamento em coluna `QUANTITY` |
-| 6. Análise | Sazonalidade, produtos, categorias, clientes, perfil |
-| 7. Visualização | 6 gráficos gerados automaticamente |
+| 5. Duplicatas | Agrupamento em coluna `QUANTITY` → 733.447 registros finais |
+| 6. Análise | Sazonalidade (mês, ano, dia da semana), produtos, categorias, gênero, segmento, Pareto de clientes, tickets e categoria × segmento — 13 agrupamentos no total (10 com `groupby()`, 3 com `pivot_table()`) |
+| 7. Visualização | 13 gráficos gerados automaticamente |
 | 8. Relatório | Log completo + conclusões |
 
 ---
@@ -38,14 +43,68 @@ etapas do pipeline, insights completos, visualizações, notas sobre os dados e 
 4. **Ano com mais vendas:** 2021 (245.259 unidades)
 5. **Gênero com mais compras:** Feminino (52,1% das vendas)
 6. **Segmento principal:** B (63,9% das vendas)
-7. **Média de itens por compra:** 44,94 itens
-8. **Top produto está distribuído** entre 1.000 clientes únicos (não concentrado)
-9. **Perfil familiar:** 52,5% dos clientes não têm filhos; média de 1,15 filhos por cliente
 
 ### 🛍️ Preferências por gênero
 
 - **Mulheres (F):** Presunto Cozido, Sardinha, Detergente, Chupeta, Removedor
 - **Homens (M):** Presunto Cozido, Banana, Refrigerante, Preservativo, Bife de Coxão Mole
+
+### 📈 Análises complementares
+
+- **Perfil familiar:** 52,5% dos clientes não têm filhos; média de 1,15 filhos por cliente
+- **Média de itens por compra:** 44,94 itens
+- **Top produto está distribuído** entre 1.000 clientes únicos (não concentrado)
+- **Pareto de clientes (80/20):** identifica qual % de clientes concentra 80% das vendas
+- **Padrão por dia da semana:** revela o melhor e o pior dia de vendas
+- **Ticket médio por segmento e gênero:** mostra diferenças no valor gasto por visita
+- **Categoria × Segmento:** cruza demanda por categoria e perfil econômico do cliente
+- **Dispersão frequência × ticket:** classifica clientes em VIP, frequente, ocasional e esporádico
+- **Tamanho das compras:** distribuição do número de itens por compra
+
+---
+
+## 🔗 Mapeamento: análise ↔ função no código
+
+Esta tabela liga cada análise complementar ao bloco de código responsável por ela, 
+facilitando a auditoria e a reprodução dos resultados. As análises **essenciais** já 
+estão listadas na seção **"Agrupamentos utilizados"** mais abaixo.
+
+| Análise | Descrição | Função no código |
+|---------|-----------|------------------|
+| Pareto de clientes | Identifica qual % de clientes concentra 80% das vendas | `analyze_customer_pareto()` |
+| Dia da semana | Melhor e pior dia de vendas | `analyze_sales_by_weekday()` |
+| Ticket médio por segmento | Valor médio gasto por visita, por segmento econômico | `analyze_avg_ticket_by_group()` |
+| Ticket médio por gênero | Valor médio gasto por visita, por gênero | `analyze_avg_ticket_by_group()` |
+| Categoria × Segmento | Cruzamento de demanda por categoria e segmento | `analyze_category_by_segment()` |
+| Dispersão frequência × ticket | Classifica clientes em VIP, frequente, ocasional e esporádico | `analyze_customer_scatter()` |
+| Tamanho das compras | Distribuição do número de itens por compra | `analyze_purchase_size()` |
+| Concentração do produto top | Verifica se o produto top está concentrado em poucos clientes | `analyze_product_concentration()` |
+| Cobertura por ano | Contagem de registros por ano (checagem de lacunas) | `analyze_records_by_year()` |
+| Top produtos por gênero | Produtos mais comprados por homens e mulheres | `analyze_products_by_gender()` |
+| Filhos do cliente | Estatísticas de `CL_FHL` (média, mediana, moda, desvio, quartis) | `analyze_children()` |
+
+---
+
+### 🔀 Agrupamentos utilizados
+
+O enunciado pede "pelo menos dois agrupamentos usando `groupby()` ou `pivot_table()`". 
+Este projeto utiliza **13 agrupamentos**, sendo 10 com `groupby()` e 3 com `pivot_table()`:
+
+| # | Agrupamento | Função | Método |
+|---|---|---|---|
+| 1 | Vendas por mês | `analyze_sales_by_month()` | `groupby()` |
+| 2 | Vendas por ano | `analyze_sales_by_year()` | `groupby()` |
+| 3 | Vendas por dia da semana | `analyze_sales_by_weekday()` | `groupby()` |
+| 4 | Top produtos | `analyze_top_products()` | `groupby()` |
+| 5 | Top categorias | `analyze_top_categories()` | `groupby()` |
+| 6 | Vendas por gênero | `analyze_sales_by_gender()` | `groupby()` |
+| 7 | Vendas por segmento | `analyze_sales_by_segment()` | `groupby()` |
+| 8 | Top produtos por gênero | `analyze_products_by_gender()` | `groupby()` |
+| 9 | Pareto de clientes | `analyze_customer_pareto()` | `groupby()` |
+| 10 | Ticket médio por grupo | `analyze_avg_ticket_by_group()` | `groupby()` |
+| 11 | Categoria × Segmento | `analyze_category_by_segment()` | `pivot_table()` |
+| 12 | Mês × Ano (heatmap) | `plot_seasonality_heatmap()` | `pivot_table()` |
+| 13 | Categoria × Segmento (heatmap) | `plot_heatmap_category_segment()` | `pivot_table()` |
 
 ---
 
@@ -69,6 +128,8 @@ etapas do pipeline, insights completos, visualizações, notas sobre os dados e 
 **Vendas por segmento de cliente:**
 ![Segmento](data/output/grafico_segmento.png)
 
+---
+
 ## 📈 Gráficos gerados
 
 | Arquivo | Descrição |
@@ -79,6 +140,13 @@ etapas do pipeline, insights completos, visualizações, notas sobre os dados e 
 | `grafico_categorias.png` | Vendas por categoria |
 | `grafico_genero.png` | Distribuição por gênero (pizza) |
 | `grafico_segmento.png` | Vendas por segmento de cliente |
+| `grafico_ano.png` | Vendas por ano (barras) |
+| `grafico_dia_semana.png` | Vendas por dia da semana (barras) |
+| `grafico_pareto_clientes.png` | Curva de Pareto — concentração de clientes |
+| `grafico_heatmap_categoria_segmento.png` | Heatmap categoria × segmento (seaborn) |
+| `grafico_tamanho_compra.png` | Distribuição do tamanho das compras (itens/compra) |
+| `grafico_filhos.png` | Distribuição do número de filhos por registro |
+| `grafico_scatter_cliente.png` | Dispersão frequência × ticket médio (quadrantes VIP/esporádico) |
 
 ---
 
@@ -90,6 +158,18 @@ Todos os valores `#N/D` (3.650 registros, 0,44%) pertenciam a um único produto 
 
 - **Decisão:** preencher com `"Sem Categoria"` para preservar os registros.
 - **Recomendação:** completar o cadastro do produto 107 na base de origem.
+
+### 🔢 Dois números de registros
+
+| Métrica | Valor |
+|---|---|
+| Registros brutos (CSV) | 830.000 |
+| Registros após agrupamento | 733.447 |
+| Redução | 11,63% (96.553 linhas agrupadas) |
+| Soma de `QUANTITY` | 830.000 (reconstrói o total original) |
+
+Cada linha do CSV representa **um item comprado**. Ao agrupar por `DATA + CO_ID + PR_ID`, 
+itens idênticos na mesma compra são consolidados em `QUANTITY` (de 1 a 6).
 
 ### 📅 Cobertura por ano
 
