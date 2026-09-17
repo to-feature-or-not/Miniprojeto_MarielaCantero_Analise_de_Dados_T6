@@ -199,7 +199,10 @@ Os resultados serão salvos em `data/output/` (gráficos + log) e `data/processe
 ![Vendas por mês](data/output/grafico_sazonalidade.png)
 
 **Heatmap de sazonalidade (mês × ano):**
-![Heatmap](data/output/grafico_heatmap_sazonalidade.png)
+![Heatmap de sazonalidade](data/output/grafico_heatmap_sazonalidade.png)
+
+**Vendas por ano:**
+![Vendas por ano](data/output/grafico_ano.png)
 
 **Top 10 produtos mais vendidos:**
 ![Top produtos](data/output/grafico_top_produtos.png)
@@ -207,11 +210,29 @@ Os resultados serão salvos em `data/output/` (gráficos + log) e `data/processe
 **Vendas por categoria:**
 ![Categorias](data/output/grafico_categorias.png)
 
-**Distribuição por gênero:**
-![Gênero](data/output/grafico_genero.png)
-
 **Vendas por segmento de cliente:**
 ![Segmento](data/output/grafico_segmento.png)
+
+**Vendas por gênero:**
+![Gênero](data/output/grafico_genero.png)
+
+**Vendas por dia da semana:**
+![Dia da semana](data/output/grafico_dia_semana.png)
+
+**Distribuição do número de filhos:**
+![Filhos](data/output/grafico_filhos.png)
+
+**Distribuição do tamanho das compras:**
+![Tamanho das compras](data/output/grafico_tamanho_compra.png)
+
+**Curva de Pareto — concentração de clientes:**
+![Pareto clientes](data/output/grafico_pareto_clientes.png)
+
+**Heatmap categoria × segmento:**
+![Heatmap categoria × segmento](data/output/grafico_heatmap_categoria_segmento.png)
+
+**Dispersão frequência × ticket médio (clientes):**
+![Scatter cliente](data/output/grafico_scatter_cliente.png)
 
 ## 📈 Gráficos gerados
 
