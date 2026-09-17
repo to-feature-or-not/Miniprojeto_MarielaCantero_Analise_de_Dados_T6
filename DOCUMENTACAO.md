@@ -108,29 +108,10 @@ Este projeto utiliza **13 agrupamentos**, sendo 10 com `groupby()` e 3 com `pivo
 
 ---
 
-### 📸 Visualizações
-
-**Vendas por mês (sazonalidade):**
-![Vendas por mês](data/output/grafico_sazonalidade.png)
-
-**Heatmap de sazonalidade (mês × ano):**
-![Heatmap](data/output/grafico_heatmap_sazonalidade.png)
-
-**Top 10 produtos mais vendidos:**
-![Top produtos](data/output/grafico_top_produtos.png)
-
-**Vendas por categoria:**
-![Categorias](data/output/grafico_categorias.png)
-
-**Distribuição por gênero:**
-![Gênero](data/output/grafico_genero.png)
-
-**Vendas por segmento de cliente:**
-![Segmento](data/output/grafico_segmento.png)
-
----
-
 ## 📈 Gráficos gerados
+
+As imagens estão disponíveis no [`README.md`](README.md#-visualizações) e em `data/output/`. 
+Abaixo, a lista completa com descrições:
 
 | Arquivo | Descrição |
 |---------|-----------|
