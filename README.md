@@ -16,7 +16,9 @@ Análise exploratória de dados de vendas de uma rede de supermercados, com foco
 
 ## 📋 Sobre o projeto
 
-Este projeto realiza uma análise completa de um dataset com **830.000 registros** de vendas do setor varejista, cobrindo o período de **2019 a 2022**.
+Este projeto realiza uma análise completa de um dataset de vendas do setor varejista, cobrindo o período de **2019 a 2022**.
+
+O dataset original possui **830.000 registros brutos** (cada linha = 1 item comprado). Após agrupar duplicatas em uma coluna `QUANTITY`, a base final fica com **733.447 registros** (cada linha = 1 produto distinto por compra).
 
 O pipeline inclui:
 
@@ -101,7 +103,7 @@ Miniprojeto_MarielaCantero_Analise_de_Dados_T6
 - **Python 3.14**
 - **pandas** — manipulação e análise de dados
 - **matplotlib** — visualização de dados
-- **seaborn** — heatmap de sazonalidade
+- **seaborn** — heatmaps de sazonalidade e de categoria × segmento
 
 ---
 
@@ -152,13 +154,13 @@ Os resultados serão salvos em `data/output/` (gráficos + log) e `data/processe
 
 | Etapa | Descrição |
 |-------|-----------|
-| 1. Carregamento | Leitura do CSV original (830.000 registros) |
+| 1. Carregamento | Leitura do CSV original (830.000 registros brutos) |
 | 2. Exploração | Análise da estrutura e amostra dos dados |
 | 3. Limpeza | Remoção de colunas vazias e preenchimento de `#N/D` com "Sem Categoria" |
 | 4. Datas | Conversão e validação de datas |
-| 5. Duplicatas | Agrupamento em coluna `QUANTITY` |
-| 6. Análise | Sazonalidade, produtos, categorias, clientes |
-| 7. Visualização | 6 gráficos gerados automaticamente |
+| 5. Duplicatas | Agrupamento em coluna `QUANTITY` → 733.447 registros finais |
+| 6. Análise | Sazonalidade (mês, ano, dia da semana), produtos, categorias, gênero, segmento, Pareto de clientes, tickets e categoria × segmento — 13 agrupamentos no total (10 com `groupby()`, 3 com `pivot_table()`) |
+| 7. Visualização | 13 gráficos gerados automaticamente |
 | 8. Relatório | Log completo + conclusões |
 
 ---
@@ -171,14 +173,23 @@ Os resultados serão salvos em `data/output/` (gráficos + log) e `data/processe
 4. **Ano com mais vendas:** 2021 (245.259 unidades)
 5. **Gênero com mais compras:** Feminino (52,1% das vendas)
 6. **Segmento principal:** B (63,9% das vendas)
-7. **Média de itens por compra:** 44,94 itens
-8. **Top produto está distribuído** entre 1.000 clientes únicos (não concentrado)
-9. **Perfil familiar:** 52,5% dos clientes não têm filhos; média de 1,15 filhos por cliente
 
 ### 🛍️ Preferências por gênero
 
 - **Mulheres (F):** Presunto Cozido, Sardinha, Detergente, Chupeta, Removedor
 - **Homens (M):** Presunto Cozido, Banana, Refrigerante, Preservativo, Bife de Coxão Mole
+
+### 📈 Análises complementares
+
+- **Perfil familiar:** 52,5% dos clientes não têm filhos; média de 1,15 filhos por cliente
+- **Média de itens por compra:** 44,94 itens
+- **Top produto está distribuído** entre 1.000 clientes únicos (não concentrado)
+- **Pareto de clientes (80/20):** identifica qual % de clientes concentra 80% das vendas
+- **Padrão por dia da semana:** revela o melhor e o pior dia de vendas
+- **Ticket médio por segmento e gênero:** mostra diferenças no valor gasto por visita
+- **Categoria × Segmento:** cruza demanda por categoria e perfil econômico do cliente
+- **Dispersão frequência × ticket:** classifica clientes em VIP, frequente, ocasional e esporádico
+- **Tamanho das compras:** distribuição do número de itens por compra
 
 ---
 
@@ -212,6 +223,13 @@ Os resultados serão salvos em `data/output/` (gráficos + log) e `data/processe
 | `grafico_categorias.png` | Vendas por categoria |
 | `grafico_genero.png` | Distribuição por gênero (pizza) |
 | `grafico_segmento.png` | Vendas por segmento de cliente |
+| `grafico_ano.png` | Vendas por ano (barras) |
+| `grafico_dia_semana.png` | Vendas por dia da semana (barras) |
+| `grafico_pareto_clientes.png` | Curva de Pareto — concentração de clientes |
+| `grafico_heatmap_categoria_segmento.png` | Heatmap categoria × segmento (seaborn) |
+| `grafico_tamanho_compra.png` | Distribuição do tamanho das compras (itens/compra) |
+| `grafico_filhos.png` | Distribuição do número de filhos por registro |
+| `grafico_scatter_cliente.png` | Dispersão frequência × ticket médio (quadrantes VIP/esporádico) |
 
 ---
 
@@ -223,6 +241,13 @@ Todos os valores `#N/D` (3.650 registros, 0,44%) pertenciam a um único produto 
 
 - **Decisão:** preencher com `"Sem Categoria"` para preservar os registros.
 - **Recomendação:** completar o cadastro do produto 107 na base de origem.
+
+### 🔢 Dois números de registros
+
+- **830.000** → registros brutos no CSV (cada linha = 1 item comprado)
+- **733.447** → registros após agrupar duplicatas (cada linha = 1 produto por compra, com `QUANTITY` ≥ 1)
+
+A soma da coluna `QUANTITY` reconstrói os 830.000 itens originais.
 
 ### 📅 Cobertura por ano
 

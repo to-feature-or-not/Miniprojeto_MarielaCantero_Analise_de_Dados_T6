@@ -3,14 +3,19 @@
 Análise exploratória de dados de vendas de uma rede de supermercados, com foco em sazonalidade, comportamento de compra e perfil do cliente.
 
 **Curso:** SCTEC — Etapa Profissionalizar
-**Autor:** [to-feature-or-not](https://github.com/to-feature-or-not)
+**Turma:** Análise de Dados [T6]
 **Data:** 2026-09-10
+**Autor:** [to-feature-or-not](https://github.com/to-feature-or-not)
+**Repositório:** https://github.com/to-feature-or-not/Miniprojeto_MarielaCantero_Analise_de_Dados_T6
 
 ---
 
 ## 📋 Sobre o projeto
 
-Este projeto realiza uma análise completa de um dataset com **830.000 registros** de vendas do setor varejista, cobrindo o período de **2019 a 2022**.
+Este projeto realiza uma análise completa de um dataset de vendas do setor varejista, cobrindo o período de **2019 a 2022**.
+
+O dataset original possui **830.000 registros brutos** (cada linha = 1 item comprado). Após agrupar duplicatas em uma coluna `QUANTITY`, a base final fica com **733.447 registros** (cada linha = 1 produto distinto por compra).
+
 
 O pipeline inclui:
 
@@ -53,7 +58,7 @@ Miniprojeto_MarielaCantero_Analise_de_Dados_T6
 - **Python 3.14**
 - **pandas** — manipulação e análise de dados
 - **matplotlib** — visualização de dados
-- **seaborn** — heatmap de sazonalidade
+- **seaborn** — heatmaps de sazonalidade e de categoria × segmento
 
 ---
 
@@ -96,9 +101,27 @@ pip install -r requirements.txt
 python Miniprojeto_MarielaCantero_Analise_de_Dados_T6.py
 ```
 
-Os resultados serão salvos em `data/output/` (gráficos + log) e `data/processed/` (CSV final).
+---
 
+## Saídas esperadas:
 
+- `data/processed/varejo_final.csv` — base limpa
+
+- `data/output/run_*.log` — log completo da execução
+
+- `data/output/grafico_*.png` — 13 gráficos gerados
+
+---
+
+## 📂 Documentação completa
+
+Análise, insights e reflexão teórica sobre ETL: veja [README.md](README.md).
+
+Detalhes técnicos do pipeline e estatísticas: veja [DOCUMENTACAO.md](DOCUMENTACAO.md).
+
+Enunciado e descrição da base: `docs/`
+
+---
 
 ## 👤 Autor
 
