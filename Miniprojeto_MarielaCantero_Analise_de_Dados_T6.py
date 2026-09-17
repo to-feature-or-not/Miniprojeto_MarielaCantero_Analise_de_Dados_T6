@@ -355,10 +355,11 @@ def analyze_missing_by_dimension(
     if missing_markers is None:
         missing_markers = ["#N/D"]
 
-    if dimension not in df.columns:
-        print(f"⚠️  Column '{dimension}' not found. Skipping.")
+    required = [dimension]
+    if not all(c in df.columns for c in required):
+        print(f"   ⚠️  Missing columns: {[c for c in required if c not in df.columns]}. Skipping.")
         return {}
-
+    
     markers_str = ", ".join(f"'{m}'" for m in missing_markers)
     print(f"\n   📊 Missing ({markers_str}) by '{dimension}':")
 
@@ -1269,12 +1270,9 @@ def analyze_sales_by_month(
     """
     print("\n📈 Analyzing sales by month...")
 
-    if month_column not in df.columns:
-        print(f"   ⚠️  Column '{month_column}' not found. Skipping.")
-        return {}
-
-    if quantity_column not in df.columns:
-        print(f"   ⚠️  Column '{quantity_column}' not found. Skipping.")
+    required = [month_column, quantity_column]
+    if not all(c in df.columns for c in required):
+        print(f"   ⚠️  Missing columns: {[c for c in required if c not in df.columns]}. Skipping.")
         return {}
 
     # Group by month
@@ -1339,8 +1337,9 @@ def analyze_top_products(
     """
     print(f"\n🏆 Analyzing top {top_n} products...")
 
-    if product_column not in df.columns:
-        print(f"   ⚠️  Column '{product_column}' not found. Skipping.")
+    required = [product_column, quantity_column]
+    if not all(c in df.columns for c in required):
+        print(f"   ⚠️  Missing columns: {[c for c in required if c not in df.columns]}. Skipping.")
         return {}
 
     top = (
@@ -1381,8 +1380,9 @@ def analyze_top_categories(
     """
     print("\n📊 Analyzing top categories...")
 
-    if category_column not in df.columns:
-        print(f"   ⚠️  Column '{category_column}' not found. Skipping.")
+    required = [category_column, quantity_column]
+    if not all(c in df.columns for c in required):
+        print(f"   ⚠️  Missing columns: {[c for c in required if c not in df.columns]}. Skipping.")
         return {}
 
     by_cat = (
@@ -1425,8 +1425,9 @@ def analyze_sales_by_gender(
     """
     print("\n👥 Analyzing sales by gender...")
 
-    if gender_column not in df.columns:
-        print(f"   ⚠️  Column '{gender_column}' not found. Skipping.")
+    required = [gender_column, quantity_column]
+    if not all(c in df.columns for c in required):
+        print(f"   ⚠️  Missing columns: {[c for c in required if c not in df.columns]}. Skipping.")
         return {}
 
     # Total quantity by gender
@@ -1480,10 +1481,11 @@ def analyze_sales_by_segment(
     """
     print("\n📊 Analyzing sales by segment...")
 
-    if segment_column not in df.columns:
-        print(f"   ⚠️  Column '{segment_column}' not found. Skipping.")
+    required = [segment_column, quantity_column]
+    if not all(c in df.columns for c in required):
+        print(f"   ⚠️  Missing columns: {[c for c in required if c not in df.columns]}. Skipping.")
         return {}
-
+    
     by_seg = (
         df.groupby(segment_column)[quantity_column]
         .sum()
@@ -1528,8 +1530,9 @@ def plot_sales_by_month(
     """
     print(f"\n📊 Plotting sales by month...")
 
-    if month_column not in df.columns or quantity_column not in df.columns:
-        print("   ⚠️  Required columns not found. Skipping.")
+    required = [month_column, quantity_column]
+    if not all(c in df.columns for c in required):
+        print(f"   ⚠️  Missing columns: {[c for c in required if c not in df.columns]}. Skipping.")
         return
 
     # Group by month
@@ -1598,8 +1601,9 @@ def plot_top_products(
     """
     print(f"\n📊 Plotting top {top_n} products...")
 
-    if product_column not in df.columns or quantity_column not in df.columns:
-        print("   ⚠️  Required columns not found. Skipping.")
+    required = [product_column, quantity_column]
+    if not all(c in df.columns for c in required):
+        print(f"   ⚠️  Missing columns: {[c for c in required if c not in df.columns]}. Skipping.")
         return
 
     top = (
@@ -1660,8 +1664,9 @@ def plot_top_categories(
     """
     print(f"\n📊 Plotting categories...")
 
-    if category_column not in df.columns or quantity_column not in df.columns:
-        print("   ⚠️  Required columns not found. Skipping.")
+    required = [category_column, quantity_column]
+    if not all(c in df.columns for c in required):
+        print(f"   ⚠️  Missing columns: {[c for c in required if c not in df.columns]}. Skipping.")
         return
 
     by_cat = (
@@ -1724,8 +1729,9 @@ def plot_sales_by_gender(
     """
     print(f"\n📊 Plotting sales by gender...")
 
-    if gender_column not in df.columns or quantity_column not in df.columns:
-        print("   ⚠️  Required columns not found. Skipping.")
+    required = [gender_column, quantity_column]
+    if not all(c in df.columns for c in required):
+        print(f"   ⚠️  Missing columns: {[c for c in required if c not in df.columns]}. Skipping.")
         return
 
     by_gender = df.groupby(gender_column)[quantity_column].sum()
@@ -1779,8 +1785,9 @@ def plot_sales_by_segment(
     """
     print(f"\n📊 Plotting sales by segment...")
 
-    if segment_column not in df.columns or quantity_column not in df.columns:
-        print("   ⚠️  Required columns not found. Skipping.")
+    required = [segment_column, quantity_column]
+    if not all(c in df.columns for c in required):
+        print(f"   ⚠️  Missing columns: {[c for c in required if c not in df.columns]}. Skipping.")
         return
 
     by_seg = df.groupby(segment_column)[quantity_column].sum().sort_values(ascending=False)
@@ -1845,7 +1852,7 @@ def plot_seasonality_heatmap(
 
     required = [year_column, month_column, quantity_column]
     if not all(c in df.columns for c in required):
-        print("   ⚠️  Required columns not found. Skipping.")
+        print(f"   ⚠️  Missing columns: {[c for c in required if c not in df.columns]}. Skipping.")
         return
 
     # Pivot: rows = MONTH, columns = YEAR
@@ -1906,8 +1913,9 @@ def analyze_sales_by_year(
     """
     print("\n📅 Analyzing sales by year...")
 
-    if year_column not in df.columns:
-        print(f"   ⚠️  Column '{year_column}' not found. Skipping.")
+    required = [year_column, quantity_column]
+    if not all(c in df.columns for c in required):
+        print(f"   ⚠️  Missing columns: {[c for c in required if c not in df.columns]}. Skipping.")
         return {}
 
     by_year = (
@@ -1956,10 +1964,11 @@ def analyze_records_by_year(
     """
     print("\n📅 Analyzing data coverage by year...")
 
-    if year_column not in df.columns:
-        print(f"   ⚠️  Column '{year_column}' not found. Skipping.")
+    required = [year_column]
+    if not all(c in df.columns for c in required):
+        print(f"   ⚠️  Missing columns: {[c for c in required if c not in df.columns]}. Skipping.")
         return {}
-
+    
     counts = df[year_column].value_counts().sort_index()
 
     total = counts.sum()
@@ -2016,10 +2025,10 @@ def analyze_products_by_gender(
     """
     print(f"\n🛍️  Analyzing top {top_n} products by gender...")
 
-    if gender_column not in df.columns or product_column not in df.columns:
-        print("   ⚠️  Required columns not found. Skipping.")
+    required = [gender_column, product_column]
+    if not all(c in df.columns for c in required):
+        print(f"   ⚠️  Missing columns: {[c for c in required if c not in df.columns]}. Skipping.")
         return {}
-
     results = {}
 
     for gender in df[gender_column].unique():
@@ -2195,8 +2204,9 @@ def analyze_children(
     """Analyze children count statistics."""
     print("\n👨‍👩‍👧  Analyzing number of children (CL_FHL)...")
 
-    if children_column not in df.columns:
-        print(f"   ⚠️  Column '{children_column}' not found. Skipping.")
+    required = [children_column]
+    if not all(c in df.columns for c in required):
+        print(f"   ⚠️  Missing columns: {[c for c in required if c not in df.columns]}. Skipping.")
         return {}
 
     col = df[children_column]
@@ -2244,14 +2254,11 @@ def analyze_sales_by_weekday(
     """Analyze sales by day of week."""
     print("\n📆 Analyzing sales by day of week...")
 
-    if weekday_column not in df.columns:
-        print(f"   ⚠️  Column '{weekday_column}' not found. Skipping.")
+    required = [weekday_column, quantity_column]
+    if not all(c in df.columns for c in required):
+        print(f"   ⚠️  Missing columns: {[c for c in required if c not in df.columns]}. Skipping.")
         return {}
-
-    if quantity_column not in df.columns:
-        print(f"   ⚠️  Column '{quantity_column}' not found. Skipping.")
-        return {}
-
+    
     weekday_names = {
         0: "Segunda", 1: "Terça", 2: "Quarta", 3: "Quinta",
         4: "Sexta", 5: "Sábado", 6: "Domingo",
@@ -2300,12 +2307,9 @@ def plot_sales_by_weekday(
     """Plot sales by day of week as a bar chart."""
     print(f"\n📊 Plotting sales by weekday...")
 
-    if weekday_column not in df.columns:
-        print(f"   ⚠️  Column '{weekday_column}' not found. Skipping.")
-        return
-
-    if quantity_column not in df.columns:
-        print(f"   ⚠️  Column '{quantity_column}' not found. Skipping.")
+    required = [weekday_column, quantity_column]
+    if not all(c in df.columns for c in required):
+        print(f"   ⚠️  Missing columns: {[c for c in required if c not in df.columns]}. Skipping.")
         return
 
     weekday_names = {
@@ -2376,10 +2380,10 @@ def analyze_customer_pareto(
     for `pareto_threshold`% of total quantity sold."""
     print(f"\n📊 Analyzing customer Pareto ({pareto_threshold:.0f}/{100-pareto_threshold:.0f})...")
 
-    if customer_column not in df.columns or quantity_column not in df.columns:
-        print("   ⚠️  Required columns not found. Skipping.")
+    required = [customer_column, quantity_column]
+    if not all(c in df.columns for c in required):
+        print(f"   ⚠️  Missing columns: {[c for c in required if c not in df.columns]}. Skipping.")
         return {}
-
     by_customer = (
         df.groupby(customer_column)[quantity_column]
         .sum()
@@ -2446,8 +2450,9 @@ def plot_customer_pareto(
     """Plot customer Pareto curve."""
     print(f"\n📊 Plotting customer Pareto curve...")
 
-    if customer_column not in df.columns or quantity_column not in df.columns:
-        print("   ⚠️  Required columns not found. Skipping.")
+    required = [customer_column, quantity_column]
+    if not all(c in df.columns for c in required):
+        print(f"   ⚠️  Missing columns: {[c for c in required if c not in df.columns]}. Skipping.")
         return
 
     by_customer = (
@@ -2513,12 +2518,9 @@ def analyze_avg_ticket_by_group(
     """Analyze average ticket (items per purchase) by a group."""
     print(f"\n🎟️  Analyzing average ticket by '{group_column}'...")
 
-    if group_column not in df.columns:
-        print(f"   ⚠️  Column '{group_column}' not found. Skipping.")
-        return {}
-
-    if quantity_column not in df.columns or purchase_column not in df.columns:
-        print(f"   ⚠️  Required columns not found. Skipping.")
+    required = [group_column, quantity_column, purchase_column]
+    if not all(c in df.columns for c in required):
+        print(f"   ⚠️  Missing columns: {[c for c in required if c not in df.columns]}. Skipping.")
         return {}
 
     items_per_purchase = (
@@ -2578,7 +2580,7 @@ def analyze_category_by_segment(
 
     required = [category_column, segment_column, quantity_column]
     if not all(c in df.columns for c in required):
-        print("   ⚠️  Required columns not found. Skipping.")
+        print(f"   ⚠️  Missing columns: {[c for c in required if c not in df.columns]}. Skipping.")
         return {}
 
     pivot = df.pivot_table(
@@ -2624,7 +2626,7 @@ def plot_heatmap_category_segment(
 
     required = [category_column, segment_column, quantity_column]
     if not all(c in df.columns for c in required):
-        print("   ⚠️  Required columns not found. Skipping.")
+        print(f"   ⚠️  Missing columns: {[c for c in required if c not in df.columns]}. Skipping.")
         return
 
     pivot = df.pivot_table(
@@ -2675,8 +2677,9 @@ def plot_sales_by_year(
     """Plot sales by year as a bar chart."""
     print(f"\n📊 Plotting sales by year...")
 
-    if year_column not in df.columns or quantity_column not in df.columns:
-        print("   ⚠️  Required columns not found. Skipping.")
+    required = [year_column, quantity_column]
+    if not all(c in df.columns for c in required):
+        print(f"   ⚠️  Missing columns: {[c for c in required if c not in df.columns]}. Skipping.")
         return
 
     by_year = df.groupby(year_column)[quantity_column].sum().sort_index()
@@ -2726,8 +2729,9 @@ def plot_purchase_size(
     """Plot purchase size distribution as a bar chart."""
     print(f"\n📊 Plotting purchase size distribution...")
 
-    if purchase_column not in df.columns or quantity_column not in df.columns:
-        print("   ⚠️  Required columns not found. Skipping.")
+    required = [purchase_column, quantity_column]
+    if not all(c in df.columns for c in required):
+        print(f"   ⚠️  Missing columns: {[c for c in required if c not in df.columns]}. Skipping.")
         return
 
     items_per_purchase = df.groupby(purchase_column)[quantity_column].sum()
@@ -2851,7 +2855,7 @@ def analyze_customer_scatter(
 
     required = [customer_column, purchase_column, quantity_column]
     if not all(c in df.columns for c in required):
-        print("   ⚠️  Required columns not found. Skipping.")
+        print(f"   ⚠️  Missing columns: {[c for c in required if c not in df.columns]}. Skipping.")
         return {}
 
     # Items per purchase, per customer
@@ -2915,9 +2919,14 @@ def plot_customer_scatter(
     """Plot customer scatter: frequency vs average ticket."""
     print(f"\n📊 Plotting customer scatter...")
 
+    required = [customer_column, purchase_column, quantity_column]
+    if not all(c in df.columns for c in required):
+        print(f"   ⚠️  Missing columns: {[c for c in required if c not in df.columns]}. Skipping.")
+        return
+    
     analysis = analyze_customer_scatter(df, customer_column, purchase_column, quantity_column)
     if not analysis:
-        print("   ⚠️  Skipping.")
+        print("   ⚠️  No analysis data. Skipping.")
         return
 
     per_customer = analysis["per_customer"]
@@ -2935,33 +2944,37 @@ def plot_customer_scatter(
         edgecolor="white",
         linewidth=0.5,
     )
-
-    # Quadrant lines (medians)
     ax.axvline(median_freq, color="crimson", linestyle="--", alpha=0.6,
                label=f"Mediana frequência ({median_freq:.0f})")
     ax.axhline(median_ticket, color="crimson", linestyle="--", alpha=0.6,
                label=f"Mediana ticket ({median_ticket:.1f})")
 
-    # Quadrant labels
-    x_max = per_customer["frequency"].max()
-    y_max = per_customer["avg_ticket"].max()
+    x_max = per_customer["frequency"].max() * 1.15
+    y_max = per_customer["avg_ticket"].max() * 1.05
 
-    ax.text(x_max * 0.95, y_max * 0.95, "VIP\n(muitas + alto)",
+    ax.set_xlim(0, x_max)
+    ax.set_ylim(0, y_max)
+
+    # Sup. dir. — VIP
+    ax.text(x_max * 0.98, y_max * 0.98, "VIP\n(muitas + alto)",
             ha="right", va="top", fontsize=10, fontweight="bold",
             color="darkgreen",
             bbox=dict(boxstyle="round,pad=0.3", facecolor="lightgreen", alpha=0.6))
 
-    ax.text(x_max * 0.95, y_max * 0.05, "Ocasional\nalto ticket",
-            ha="right", va="bottom", fontsize=10, fontweight="bold",
+    # Sup. esq. — Ocasional alto ticket
+    ax.text(x_max * 0.02, y_max * 0.98, "Ocasional\nalto ticket",
+            ha="left", va="top", fontsize=10, fontweight="bold",
             color="darkorange",
             bbox=dict(boxstyle="round,pad=0.3", facecolor="navajowhite", alpha=0.6))
 
-    ax.text(x_max * 0.05, y_max * 0.95, "Frequente\nbaixo ticket",
-            ha="left", va="top", fontsize=10, fontweight="bold",
+    # Inf. dir. — Frequente baixo ticket
+    ax.text(x_max * 0.98, y_max * 0.02, "Frequente\nbaixo ticket",
+            ha="right", va="bottom", fontsize=10, fontweight="bold",
             color="darkblue",
             bbox=dict(boxstyle="round,pad=0.3", facecolor="lightblue", alpha=0.6))
 
-    ax.text(x_max * 0.05, y_max * 0.05, "Esporádico",
+    # Inf. esq. — Esporádico
+    ax.text(x_max * 0.02, y_max * 0.02, "Esporádico",
             ha="left", va="bottom", fontsize=10, fontweight="bold",
             color="gray",
             bbox=dict(boxstyle="round,pad=0.3", facecolor="lightgray", alpha=0.6))
@@ -2969,7 +2982,7 @@ def plot_customer_scatter(
     ax.set_xlabel("Frequência (número de compras)", fontsize=12)
     ax.set_ylabel("Ticket médio (itens por compra)", fontsize=12)
     ax.set_title("Clientes: Frequência vs Ticket Médio", fontsize=14, fontweight="bold")
-    ax.legend(loc="upper right")
+    ax.legend(loc="upper left", bbox_to_anchor=(1.02, 1), borderaxespad=0)
     ax.grid(alpha=0.3)
 
     plt.tight_layout()
